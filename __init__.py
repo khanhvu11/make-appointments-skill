@@ -17,8 +17,11 @@ class MakeAppointments(MycroftSkill):
         dateE = nextAp['End Date']
         timeS = nextAp['Start Time']
         timeE = nextAp['Start Time']
-        self.speak_dialog(
-            'Your next appointment is on {} at {} and is entitled {}.'.format(dateS, timeS, todo))
+        if dateS = now:
+            self.speak_dialog(
+                'Your next appointment is on {} at {} and is entitled {}.'.format(dateS, timeS, todo))
+        else:
+            self.speak_dialog('You have no Appointment today')
 
 
 def create_skill():
