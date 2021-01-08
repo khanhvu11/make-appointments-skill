@@ -1,6 +1,5 @@
 from mycroft import MycroftSkill, intent_handler
 from adapt.intent import IntentBuilder
-from mycroft.util.time import now_local
 
 import caldav
 from caldav.elements import dav
@@ -73,7 +72,7 @@ class MakeAppointments(MycroftSkill):
 
     @intent_handler(IntentBuilder("").require("next.appointment"))
     def handle_appointments_make(self, message):
-        now = now_local.date()
+        now = datetime.datetime.now()
         nextAp = self.myCal.getNextAppointmentDate(now)
         todo = nextAp['Summary']
         dateS = nextAp['Start Date']
