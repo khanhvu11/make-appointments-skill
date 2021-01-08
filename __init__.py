@@ -72,7 +72,7 @@ class MakeAppointments(MycroftSkill):
 
     @intent_handler(IntentBuilder("").require("next.appointment"))
     def handle_appointments_make(self, message):
-        now = datetime.datetime.now()
+        now = datetime.now()
         nextAp = self.myCal.getNextAppointmentDate(now)
         todo = nextAp['Summary']
         dateS = nextAp['Start Date']
