@@ -45,3 +45,6 @@ class MyCalendar:
                     nextAppointment.update(
                         {'End Time': component.get('dtend').dt.strftime('%H:%M')})
         return nextAppointment
+
+
+print(datetime.now())

@@ -82,6 +82,12 @@ class MakeAppointments(MycroftSkill):
         self.speak_dialog(
             'Your next appointment is on {} at {} and is entitled {}.'.format(dateS, timeS, todo))
 
+    def stop(self):
+        self.stop_beeping()
+
+    def shutdown(self):
+        pass
+
 
 def create_skill():
     return MakeAppointments()
