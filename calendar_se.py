@@ -15,8 +15,8 @@ class MyCalendar:
             "@next.social-robot.info/nc/remote.php/dav"
         self.apmtNotExisted = True
         self.startOfRequest = datetime.now()
-        self.nextDay = self.startOfRequest + \
-            timedelta(days=1)
+        self.nextHalfHour = self.startOfRequest + \
+            timedelta(hours=0.5)
 
     def getCalendars(self):
         # open connection to calendar
@@ -29,19 +29,19 @@ class MyCalendar:
     def searchForAppointments(self, calendar):
         self.timeDelta = 0
         while(self.apmtNotExisted):
-            self.startOfRequest += timedelta(days=self.timeDelta)
-            print('Start: ', self.startOfRequest)
-            self.nextDay += timedelta(days=self.timeDelta)
-            print('nextDay: ', self.nextDay)
+            print('Begining: ', self.startOfRequest)
+            print('nextHalfHour: ', self.nextHalfHour)
             events = calendar.date_search(
-                start=self.startOfRequest, end=self.nextDay)
+                start=self.startOfRequest, end=self.nextHalfHour)
             if len(events) > 0:
                 print('events existed')
                 self.apmtNotExisted = False
                 return events
-            self.timeDelta += 1
+            self.timeDelta += 0.5
+            self.startOfRequest = self.nextHalfHour
+            self.nextHalfHour += timedelta(hours=self.timeDelta)
 
-    def getNextAppointmentDate(self, today):
+    def getNextAppointmentDate(self):
         nextAppointment = {}
         calendars = self.getCalendars()
         if len(calendars) > 0:
@@ -71,5 +71,5 @@ class MyCalendar:
 
 
 myCal = MyCalendar()
-nextAp = myCal.getNextAppointmentDate(datetime.now())
+nextAp = myCal.getNextAppointmentDate()
 print(nextAp)
