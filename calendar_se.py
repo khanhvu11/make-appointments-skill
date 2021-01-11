@@ -1,6 +1,6 @@
 import caldav
 from caldav.elements import dav
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from pytz import UTC  # timezone
 from icalendar import Calendar, Event
@@ -13,6 +13,10 @@ class MyCalendar:
 
         self.url = "https://" + self.username + ":" + self.password + \
             "@next.social-robot.info/nc/remote.php/dav"
+        self.apmtNotExisted = True
+        self.startOfRequest = datetime.now()
+        self.nextDay = self.startOfRequest + \
+            timedelta(days=1)
 
     def getCalendars(self):
         # open connection to calendar
@@ -22,13 +26,32 @@ class MyCalendar:
         calendars = principal.calendars()
         return calendars
 
+    def searchForAppointments(self, calendar):
+        self.timeDelta = 0
+        while(self.apmtNotExisted):
+            self.startOfRequest += timedelta(days=self.timeDelta)
+            print('Start: ', self.startOfRequest)
+            self.nextDay += timedelta(days=self.timeDelta)
+            print('nextDay: ', self.nextDay)
+            events = calendar.date_search(
+                start=self.startOfRequest, end=self.nextDay)
+            if len(events) > 0:
+                print('events existed')
+                self.apmtNotExisted = False
+                return events
+            self.timeDelta += 1
+
     def getNextAppointmentDate(self, today):
         nextAppointment = {}
         calendars = self.getCalendars()
         if len(calendars) > 0:
             calendar = calendars[0]
-            allEvents = calendar.date_search(start=today)
+            # print(calendar)
+            allEvents = self.searchForAppointments(calendar)
+            print(allEvents[0])
             nextEvent = Calendar.from_ical(allEvents[0]._data)
+            print('*'*30)
+            print(nextEvent)
             for component in nextEvent.walk():
                 if component.name == "VEVENT":
                     nextAppointment.update(
@@ -47,4 +70,6 @@ class MyCalendar:
         return nextAppointment
 
 
-print(datetime.now())
+myCal = MyCalendar()
+nextAp = myCal.getNextAppointmentDate(datetime.now())
+print(nextAp)
