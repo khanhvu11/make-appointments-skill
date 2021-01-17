@@ -22,6 +22,7 @@ class MyCalendar:
         self.startOfRequest = datetime.now()
         self.nextHalfHour = self.startOfRequest + \
             timedelta(hours=0.5)
+        self.saved = False
 
     def getCalendars(self):
         # open connection to calendar
@@ -86,7 +87,7 @@ class MyCalendar:
         # event.add('location', awesomeEvent.location)
         cal.add_component(event)
         myCal[0].save_event(cal)
-        print('saved!')
+        self.saved = True
 
 
 class MakeAppointments(MycroftSkill):
@@ -136,6 +137,9 @@ class MakeAppointments(MycroftSkill):
 
         if appointment_time:  # A datetime was extracted
             self.myCal.saveAppointment(appointment, appointment_time)
+            if self.myCal.saved:
+                self.speak_dialog('appointments.make', {
+                                  'appointment': appointment, 'timedate': apmt_time})
         else:
             self.speak_dialog('NoDate')
 
