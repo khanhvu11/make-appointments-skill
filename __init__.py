@@ -31,10 +31,10 @@ class MyCalendar:
         calendars = principal.calendars()
         return calendars
 
-    def searchForAppointments(self, calendar, start):
+    def searchForAppointments(self, calendar):
         self.timeDelta = 0
         self.apmtNotExisted = True
-        self.startOfRequest = start
+        self.startOfRequest = datetime.now(self.berlin)
         # now_local(default_timezone())
         self.nextHalfHour = self.startOfRequest + \
             timedelta(hours=0.5)
@@ -48,12 +48,12 @@ class MyCalendar:
             self.startOfRequest = self.nextHalfHour
             self.nextHalfHour += timedelta(hours=self.timeDelta)
 
-    def getNextAppointmentDate(self, start):
+    def getNextAppointmentDate(self):
         nextAppointment = {}
         calendars = self.getCalendars()
         if len(calendars) > 0:
             calendar = calendars[0]
-            allEvents = self.searchForAppointments(calendar, start)
+            allEvents = self.searchForAppointments(calendar)
             nextEvent = Calendar.from_ical(allEvents[0]._data)
             for component in nextEvent.walk():
                 if component.name == "VEVENT":
@@ -126,9 +126,7 @@ class MakeAppointments(MycroftSkill):
 
     @intent_handler('next.appointments.intent')
     def handle_appointments_make(self, message):
-        tz = self.myCal.berlin
-        print(now_local(tz))
-        nextAp = self.myCal.getNextAppointmentDate(now_local(tz))
+        nextAp = self.myCal.getNextAppointmentDate()
         todo = nextAp['Summary']
         dateS = nextAp['Start Date']
         # dateE = nextAp['End Date']
@@ -161,7 +159,10 @@ class MakeAppointments(MycroftSkill):
             name was added.
         """
         utterance = msg.data['timedate']
-        apmt_time, _ = (extract_datetime(utterance, now_local(), self.lang))
+        apmt_time, _ = (extract_datetime(utterance, now_local(),
+                                         self.lang,
+                                         default_time=DEFAULT_TIME) or
+                        (None, None))
 
         response = self.get_response('AppointmentName')
         if response and apmt_time:
