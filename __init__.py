@@ -158,12 +158,11 @@ class MakeAppointments(MycroftSkill):
         """ Handles the case where a time was given but no appointment
             name was added.
         """
-        utterance = msg.data['timedate']
+        utterance = msg.data['utterance']
         apmt_time, _ = (extract_datetime(utterance, now_local(),
                                          self.lang,
                                          default_time=DEFAULT_TIME) or
                         (None, None))
-
         response = self.get_response('AppointmentName')
         if response and apmt_time:
             self.myCal.saveAppointment(response, apmt_time)
