@@ -139,8 +139,7 @@ class MakeAppointments(MycroftSkill):
         if appointment_time:  # A datetime was extracted
             self.myCal.saveAppointment(appointment, appointment_time)
             if self.myCal.saved:
-                self.speak_dialog('appointments.make', {
-                                  'timedate': appointment_time})
+                self.speak_dialog('appointments.make')
         else:
             self.speak_dialog('NoDate')
 
