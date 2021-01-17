@@ -1,7 +1,7 @@
 from mycroft import MycroftSkill, intent_handler
 from adapt.intent import IntentBuilder
 from mycroft.util.parse import extract_datetime
-from mycroft.util.time import now_local
+from mycroft.util.time import now_local, default_timezone
 
 import caldav
 from caldav.elements import dav
@@ -19,7 +19,7 @@ class MyCalendar:
         self.url = "https://" + self.username + ":" + self.password + \
             "@next.social-robot.info/nc/remote.php/dav"
         self.apmtNotExisted = True
-        self.startOfRequest = now_local()
+        self.startOfRequest = now_local(default_timezone())
         self.nextHalfHour = self.startOfRequest + \
             timedelta(hours=0.5)
         self.saved = False
@@ -140,7 +140,7 @@ class MakeAppointments(MycroftSkill):
             self.myCal.saveAppointment(appointment, appointment_time)
             if self.myCal.saved:
                 self.speak_dialog('appointments.make', {
-                                  'appointment': appointment, 'timedate': appointment_time})
+                                  'timedate': appointment_time})
         else:
             self.speak_dialog('NoDate')
 
