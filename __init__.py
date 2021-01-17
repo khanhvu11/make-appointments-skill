@@ -37,12 +37,9 @@ class MyCalendar:
         self.timeDelta = 0
         self.apmtNotExisted = True
         while(self.apmtNotExisted):
-            print('Begining: ', self.startOfRequest)
-            print('nextHalfHour: ', self.nextHalfHour)
             events = calendar.date_search(
                 start=self.startOfRequest, end=self.nextHalfHour)
             if len(events) > 0:
-                print('events existed')
                 self.apmtNotExisted = False
                 return events
             self.timeDelta += 0.5
@@ -54,12 +51,8 @@ class MyCalendar:
         calendars = self.getCalendars()
         if len(calendars) > 0:
             calendar = calendars[0]
-            # print(calendar)
             allEvents = self.searchForAppointments(calendar)
-            print(allEvents[0])
             nextEvent = Calendar.from_ical(allEvents[0]._data)
-            print('*'*30)
-            print(nextEvent)
             for component in nextEvent.walk():
                 if component.name == "VEVENT":
                     nextAppointment.update(
