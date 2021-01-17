@@ -99,8 +99,8 @@ class MyCalendar:
 
 
 myCal = MyCalendar()
-dt = datetime(2021, 1, 19, 23, 0)
-myCal.deleteAppointment(dt)
-# nextAp = myCal.getNextAppointmentDate()
-# print(datetime.now())
-# print(nextAp)
+# dt = datetime(2021, 1, 19, 23, 0)
+# myCal.deleteAppointment(dt)
+nextAp = myCal.getNextAppointmentDate()
+print(datetime.now())
+print(nextAp)

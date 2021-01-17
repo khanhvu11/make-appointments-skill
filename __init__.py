@@ -20,10 +20,6 @@ class MyCalendar:
 
         self.url = "https://" + self.username + ":" + self.password + \
             "@next.social-robot.info/nc/remote.php/dav"
-        self.apmtNotExisted = True
-        self.startOfRequest = now_local(default_timezone())
-        self.nextHalfHour = self.startOfRequest + \
-            timedelta(hours=0.5)
         self.saved = False
         self.berlin = pytz.timezone('Europe/Berlin')
 
@@ -35,9 +31,13 @@ class MyCalendar:
         calendars = principal.calendars()
         return calendars
 
-    def searchForAppointments(self, calendar):
+    def searchForAppointments(self, calendar, start):
         self.timeDelta = 0
         self.apmtNotExisted = True
+        self.startOfRequest = start
+        # now_local(default_timezone())
+        self.nextHalfHour = self.startOfRequest + \
+            timedelta(hours=0.5)
         while(self.apmtNotExisted):
             events = calendar.date_search(
                 start=self.startOfRequest, end=self.nextHalfHour)
@@ -48,12 +48,12 @@ class MyCalendar:
             self.startOfRequest = self.nextHalfHour
             self.nextHalfHour += timedelta(hours=self.timeDelta)
 
-    def getNextAppointmentDate(self):
+    def getNextAppointmentDate(self, start):
         nextAppointment = {}
         calendars = self.getCalendars()
         if len(calendars) > 0:
             calendar = calendars[0]
-            allEvents = self.searchForAppointments(calendar)
+            allEvents = self.searchForAppointments(calendar, start)
             nextEvent = Calendar.from_ical(allEvents[0]._data)
             for component in nextEvent.walk():
                 if component.name == "VEVENT":
@@ -126,7 +126,9 @@ class MakeAppointments(MycroftSkill):
 
     @intent_handler('next.appointments.intent')
     def handle_appointments_make(self, message):
-        nextAp = self.myCal.getNextAppointmentDate()
+        tz = self.myCal.berlin
+        print(now_local(tz))
+        nextAp = self.myCal.getNextAppointmentDate(now_local(tz))
         todo = nextAp['Summary']
         dateS = nextAp['Start Date']
         # dateE = nextAp['End Date']
