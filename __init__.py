@@ -86,6 +86,23 @@ class MyCalendar:
         myCal[0].save_event(cal)
         self.saved = True
 
+    def eventExisted(self, dt):
+        calendars = self.getCalendars()
+        if len(calendars) > 0:
+            calendar = calendars[0]
+            allEvents = calendar.date_search(
+                start=dt, end=(dt + timedelta(minutes=5)))
+        return allEvents
+
+    def deleteAppointment(self, dt):
+        calendars = self.getCalendars()
+        if len(calendars) > 0:
+            calendar = calendars[0]
+            allEvents = calendar.date_search(
+                start=dt, end=(dt + timedelta(minutes=5)))
+        allEvents[0].delete()
+        print(allEvents[0], 'was deleted')
+
 
 class MakeAppointments(MycroftSkill):
     def __init__(self):
@@ -149,6 +166,26 @@ class MakeAppointments(MycroftSkill):
             self.myCal.saveAppointment(response, apmt_time)
             if self.myCal.saved:
                 self.speak_dialog('appointments.make')
+
+    @intent_handler('deleteAppointment.intent')
+    def remove_reminders_for_day(self, msg=None):
+        """ Remove all reminders for the specified date. """
+        if 'date' in msg.data:
+            date, _ = extract_datetime(msg.data['date'], lang=self.lang)
+        else:
+            date, _ = extract_datetime(msg.data['utterance'], lang=self.lang)
+
+        if date:
+            if date.time():
+                if self.myCal.eventExisted(date):
+                    answer = self.ask_yesno(
+                        'confirmDelete', data={'date': date.strftime("%d/%m/%Y %H:%M")})
+                    if answer == 'yes':
+                        self.myCal.deleteAppointment(date)
+        else:
+            response = self.get_response('repeatDeleteDate')
+            if response:
+                self.remove_reminders_for_day(response)
 
     def stop(self):
         self.stop_beeping()

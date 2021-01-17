@@ -88,8 +88,19 @@ class MyCalendar:
         myCal[0].save_event(cal)
         print('saved!')
 
+    def deleteAppointment(self, dt):
+        calendars = self.getCalendars()
+        if len(calendars) > 0:
+            calendar = calendars[0]
+            allEvents = calendar.date_search(
+                start=dt, end=(dt + timedelta(minutes=5)))
+            allEvents[0].delete()
+            print(allEvents[0], 'was deleted')
+
 
 myCal = MyCalendar()
-nextAp = myCal.getNextAppointmentDate()
-print(datetime.now())
-print(nextAp)
+dt = datetime(2021, 1, 19, 23, 0)
+myCal.deleteAppointment(dt)
+# nextAp = myCal.getNextAppointmentDate()
+# print(datetime.now())
+# print(nextAp)
