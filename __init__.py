@@ -168,7 +168,7 @@ class MakeAppointments(MycroftSkill):
                 self.speak_dialog('appointments.make')
 
     @intent_handler('deleteAppointment.intent')
-    def remove_reminders_for_day(self, msg=None):
+    def remove_appointment(self, msg=None):
         """ Remove all reminders for the specified date. """
         if 'date' in msg.data:
             date, _ = extract_datetime(msg.data['date'], lang=self.lang)
@@ -182,10 +182,15 @@ class MakeAppointments(MycroftSkill):
                         'confirmDelete', data={'date': date.strftime("%d/%m/%Y %H:%M")})
                     if answer == 'yes':
                         self.myCal.deleteAppointment(date)
+                        self.speak_dialog('Your appointment on {} was removed.'.format(
+                            date.strftime("%d/%m/%Y %H:%M")))
+                else:
+                    self.speak_dialog('noAppointment', {
+                                      'date': date.strftime("%d/%m/%Y %H:%M")})
         else:
             response = self.get_response('repeatDeleteDate')
             if response:
-                self.remove_reminders_for_day(response)
+                self.remove_appointment(response)
 
     def stop(self):
         self.stop_beeping()
