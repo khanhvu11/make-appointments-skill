@@ -19,7 +19,7 @@ class MyCalendar:
         self.url = "https://" + self.username + ":" + self.password + \
             "@next.social-robot.info/nc/remote.php/dav"
         self.apmtNotExisted = True
-        self.startOfRequest = datetime.now()
+        self.startOfRequest = now_local()
         self.nextHalfHour = self.startOfRequest + \
             timedelta(hours=0.5)
         self.saved = False

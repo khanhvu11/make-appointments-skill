@@ -50,7 +50,7 @@ class MyCalendar:
             # print(calendar)
             allEvents = self.searchForAppointments(calendar)
             print(allEvents)
-            nextEvent = Calendar.from_ical(allEvents[0]._data)
+            nextEvent = Calendar.from_ical(allEvents[1]._data)
             print('*'*30)
             print(nextEvent)
             for component in nextEvent.walk():
@@ -86,5 +86,6 @@ class MyCalendar:
 
 
 myCal = MyCalendar()
-myCal.saveAppointment('test', datetime.now())
-# print(nextAp)
+nextAp = myCal.getNextAppointmentDate()
+print(datetime.now())
+print(nextAp)
