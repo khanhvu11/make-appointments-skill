@@ -139,7 +139,7 @@ class MakeAppointments(MycroftSkill):
         else:
             self.speak_dialog('NoDate')
 
-    @intent_handler('unnamedAppointment.intent')
+    @intent_handler('unnamed.appointment.intent')
     def unnamed_appointment(self, msg=None):
         """ Handles the case where a time was given but no appointment
             name was added.
