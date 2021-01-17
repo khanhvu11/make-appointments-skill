@@ -1,4 +1,4 @@
-from mycroft import MycroftSkill, intent_handler, intent_file_handler
+from mycroft import MycroftSkill, intent_handler
 from adapt.intent import IntentBuilder
 from mycroft.util.parse import extract_datetime
 from mycroft.util.time import now_local
@@ -109,7 +109,7 @@ class MakeAppointments(MycroftSkill):
     #     else:
     #         self.speak_dialog('You have no Appointment today')
 
-    @ intent_handler(IntentBuilder("").require("next.appointment"))
+    @intent_handler(IntentBuilder("").require("next.appointment"))
     def handle_appointments_make(self, message):
         nextAp = self.myCal.getNextAppointmentDate()
         todo = nextAp['Summary']
@@ -120,9 +120,9 @@ class MakeAppointments(MycroftSkill):
         self.speak_dialog(
             'Your next appointment is on {} at {} and is entitled {}.'.format(dateS, timeS, todo))
 
-    @intent_file_handler('make.appointment.intent')
+    @intent_handler('make.appointment.intent')
     def add_new_appointment(self, msg=None):
-        """ Handler for adding  a reminder with a name at a specific time. """
+        """ Handler for adding  an appointment with a name at a specific time. """
         appointment = msg.data.get('appointment', None)
         if appointment is None:
             return self.unnamed_appointment(msg)
@@ -131,7 +131,7 @@ class MakeAppointments(MycroftSkill):
         # appointment = (' ' + appointment).replace(' my ', ' your ').strip()
         # appointment = (' ' + appointment).replace(' our ', ' your ').strip()
         utterance = msg.data['utterance']
-        appointment_time, rest = (extract_datetime(
+        appointment_time, _ = (extract_datetime(
             utterance, now_local(), self.lang))
 
         if appointment_time:  # A datetime was extracted
@@ -139,9 +139,9 @@ class MakeAppointments(MycroftSkill):
         else:
             self.speak_dialog('NoDate')
 
-    @intent_file_handler('unnamedAppointment.intent')
+    @intent_handler('unnamedAppointment.intent')
     def unnamed_appointment(self, msg=None):
-        """ Handles the case where a time was given but no reminder
+        """ Handles the case where a time was given but no appointment
             name was added.
         """
         utterance = msg.data['timedate']
