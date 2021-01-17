@@ -24,6 +24,7 @@ class MyCalendar:
         principal = client.principal()
         # get all available calendars (for this user)
         calendars = principal.calendars()
+        print(calendars)
         return calendars
 
     def searchForAppointments(self, calendar):
@@ -48,7 +49,7 @@ class MyCalendar:
             calendar = calendars[0]
             # print(calendar)
             allEvents = self.searchForAppointments(calendar)
-            print(allEvents[0])
+            print(allEvents)
             nextEvent = Calendar.from_ical(allEvents[0]._data)
             print('*'*30)
             print(nextEvent)
@@ -69,7 +70,21 @@ class MyCalendar:
                         {'End Time': component.get('dtend').dt.strftime('%H:%M')})
         return nextAppointment
 
+    def saveAppointment(self, apmt, apmt_timedate):
+        cal = Calendar()
+        event = Event()
+        myCal = self.getCalendars()
+        event.add('summary', apmt)
+        event.add('dtstart', apmt_timedate)
+        event.add('dtend', apmt_timedate + timedelta(hours=1))
+        # event.add('description',
+        # f'{awesomeEvent.description} - {awesomeEvent.url}')
+        # event.add('location', awesomeEvent.location)
+        cal.add_component(event)
+        myCal[0].save_event(cal)
+        print('saved!')
+
 
 myCal = MyCalendar()
-nextAp = myCal.getNextAppointmentDate()
-print(nextAp)
+myCal.saveAppointment('test', datetime.now())
+# print(nextAp)
