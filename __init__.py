@@ -7,7 +7,7 @@ import caldav
 from caldav.elements import dav
 from datetime import datetime, timedelta
 import json
-from pytz import UTC  # timezone
+import pytz
 from icalendar import Calendar, Event
 
 
@@ -23,6 +23,7 @@ class MyCalendar:
         self.nextHalfHour = self.startOfRequest + \
             timedelta(hours=0.5)
         self.saved = False
+        self.berlin = pytz.timezone('Europe/Berlin')
 
     def getCalendars(self):
         # open connection to calendar
@@ -69,11 +70,11 @@ class MyCalendar:
                     nextAppointment.update(
                         {'Start Date': component.get('dtstart').dt.strftime('%d/%m/%Y')})
                     nextAppointment.update(
-                        {'Start Time': component.get('dtstart').dt.strftime('%H:%M')})
+                        {'Start Time': component.get('dtstart').dt.astimezone(self.berlin).strftime('%H:%M')})
                     nextAppointment.update(
                         {'End Date': component.get('dtend').dt.strftime('%d/%m/%Y')})
                     nextAppointment.update(
-                        {'End Time': component.get('dtend').dt.strftime('%H:%M')})
+                        {'End Time': component.get('dtend').dt.astimezone(self.berlin).strftime('%H:%M')})
         return nextAppointment
 
     def saveAppointment(self, apmt, apmt_timedate):
@@ -154,6 +155,8 @@ class MakeAppointments(MycroftSkill):
         response = self.get_response('AppointmentName')
         if response and apmt_time:
             self.myCal.saveAppointment(response, apmt_time)
+            if self.myCal.saved:
+                self.speak_dialog('appointments.make')
 
     def stop(self):
         self.stop_beeping()

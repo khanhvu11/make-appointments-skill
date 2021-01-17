@@ -2,7 +2,7 @@ import caldav
 from caldav.elements import dav
 from datetime import datetime, timedelta
 import json
-from pytz import UTC  # timezone
+import pytz
 from icalendar import Calendar, Event
 
 
@@ -44,6 +44,7 @@ class MyCalendar:
             self.nextHalfHour += timedelta(hours=self.timeDelta)
 
     def getNextAppointmentDate(self):
+        berlin = pytz.timezone('Europe/Berlin')
         nextAppointment = {}
         calendars = self.getCalendars()
         if len(calendars) > 0:
@@ -63,6 +64,8 @@ class MyCalendar:
                             {'Discription': component.get('discription')})
                     nextAppointment.update(
                         {'Start Date': component.get('dtstart').dt.strftime('%d/%m/%Y')})
+                    print(
+                        '-'*10, component.get('dtstart').dt.astimezone(berlin).strftime('%H:%M'))
                     nextAppointment.update(
                         {'Start Time': component.get('dtstart').dt.strftime('%H:%M')})
                     nextAppointment.update(
