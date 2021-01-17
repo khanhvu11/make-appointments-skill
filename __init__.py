@@ -110,7 +110,7 @@ class MakeAppointments(MycroftSkill):
     #     else:
     #         self.speak_dialog('You have no Appointment today')
 
-    @intent_handler(IntentBuilder("").require("next.appointment"))
+    @intent_handler('next.appointments.intent')
     def handle_appointments_make(self, message):
         nextAp = self.myCal.getNextAppointmentDate()
         todo = nextAp['Summary']
@@ -139,7 +139,7 @@ class MakeAppointments(MycroftSkill):
             self.myCal.saveAppointment(appointment, appointment_time)
             if self.myCal.saved:
                 self.speak_dialog('appointments.make', {
-                                  'appointment': appointment, 'timedate': apmt_time})
+                                  'appointment': appointment, 'timedate': appointment_time})
         else:
             self.speak_dialog('NoDate')
 
