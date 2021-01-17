@@ -10,6 +10,8 @@ import json
 import pytz
 from icalendar import Calendar, Event
 
+DEFAULT_TIME = now_local().replace(hour=8, minute=0, second=0)
+
 
 class MyCalendar:
     def __init__(self):
@@ -122,14 +124,11 @@ class MakeAppointments(MycroftSkill):
         appointment = msg.data.get('appointment', None)
         if appointment is None:
             return self.unnamed_appointment(msg)
-
-        # mogrify the response TODO: betterify!
-        # appointment = (' ' + appointment).replace(' my ', ' your ').strip()
-        # appointment = (' ' + appointment).replace(' our ', ' your ').strip()
         utterance = msg.data['utterance']
-        appointment_time, _ = (extract_datetime(
-            utterance, now_local(), self.lang))
-
+        appointment_time, _ = (extract_datetime(utterance, now_local(),
+                                                self.lang,
+                                                default_time=DEFAULT_TIME) or
+                               (None, None))
         if appointment_time:  # A datetime was extracted
             self.myCal.saveAppointment(appointment, appointment_time)
             if self.myCal.saved:
