@@ -34,6 +34,7 @@ class MyCalendar:
 
     def searchForAppointments(self, calendar):
         self.timeDelta = 0
+        self.apmtNotExisted = True
         while(self.apmtNotExisted):
             print('Begining: ', self.startOfRequest)
             print('nextHalfHour: ', self.nextHalfHour)
