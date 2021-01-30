@@ -24,154 +24,193 @@ class MyCalendar:
         self.berlin = pytz.timezone('Europe/Berlin')
 
     def getCalendars(self):
-        # open connection to calendar
+        # auf Nextcloud-Kalender durch Url zugreifen
         client = caldav.DAVClient(self.url)
         principal = client.principal()
-        # get all available calendars (for this user)
+        # alle vorhandene Kalender abholen
         calendars = principal.calendars()
         return calendars
 
-    def searchForAppointments(self, calendar):
-        self.timeDelta = 0
-        self.apmtNotExisted = True
-        self.startOfRequest = datetime.now(self.berlin)
-        # now_local(default_timezone())
-        self.nextHalfHour = self.startOfRequest + \
-            timedelta(hours=0.5)
-        while(self.apmtNotExisted):
+    def searchForAppointment(self, calendar):
+        """ Termin finden """
+        # Es gibt noch keinen gefundenen Termin
+        apmtNotExisted = True
+        # ab wann der Termine gesucht werden. Hier: ab der Benutzer nach nächsten Terminen fragt
+        startOfDay = datetime.now(self.berlin)
+        # Intervall des Suchens. Hier ist 1 Tag
+        nextDay = startOfDay + \
+            timedelta(days=1)
+        # Intervall wird in der Schleife geschoben bis Termine gefunden wird.
+        # wenn kein Termine gefunden wird
+        while(apmtNotExisted):
+            # Termin wird gesucht ab 'startOfDay' bis 'nextDay' (ein Intervall)
             events = calendar.date_search(
-                start=self.startOfRequest, end=self.nextHalfHour)
+                start=startOfDay, end=nextDay)
+            # wenn Termine gefunden wird
             if len(events) > 0:
-                self.apmtNotExisted = False
-                return events
-            self.timeDelta += 0.5
-            self.startOfRequest = self.nextHalfHour
-            self.nextHalfHour += timedelta(hours=self.timeDelta)
+                # wenn Termine in einem Tag gefunden werden
+                # dann finde den ersten Termin des Tages mit Intervall von 30 Minuten
+                start = startOfDay
+                end = start + timedelta(hours=0.5)
+                while(apmtNotExisted):
+                    event = calendar.date_search(start=start, end=end)
+                    # wenn der erste Termin gefunden wird
+                    if len(event) > 0:
+                        # die Schleife aufhören und der Termin zurückgeben
+                        apmtNotExisted = False
+                        return event
+                    # wenn nicht, erhöhen sich 'start' und 'end' 30 Minuten
+                    start = end
+                    end += timedelta(hours=0.5)
+            # wenn nicht, erhöhen sich 'startOfDay' und 'nextDay' 1 Tag
+            startOfDay = nextDay
+            nextDay += timedelta(days=1)
 
     def getNextAppointmentDate(self):
+        """Information von dem Termin bekommen"""
+        # Information des Termin
         nextAppointment = {}
+        # Kalender holen
         calendars = self.getCalendars()
         if len(calendars) > 0:
+            # Erste Kalender auswählen
             calendar = calendars[0]
-            allEvents = self.searchForAppointments(calendar)
-            nextEvent = Calendar.from_ical(allEvents[0]._data)
+            # nächter Termin finden
+            event = self.searchForAppointment(calendar)
+            # caldav event zu ical event ändern
+            nextEvent = Calendar.from_ical(event[0]._data)
             for component in nextEvent.walk():
                 if component.name == "VEVENT":
+                    # Name des Termin speichern
                     nextAppointment.update(
                         {'Summary': component.get('summary')})
                     if component.get('discription') != None:
+                        # Beschreibung des Termin speichern
                         nextAppointment.update(
                             {'Discription': component.get('discription')})
+                    # Anfangdatum des Termin speichern
                     nextAppointment.update(
                         {'Start Date': component.get('dtstart').dt.strftime('%d/%m/%Y')})
+                    # Anfangstunde des Termin speichern
                     nextAppointment.update(
                         {'Start Time': component.get('dtstart').dt.astimezone(self.berlin).strftime('%H:%M')})
+                    # Enddatum des Termin speichern
                     nextAppointment.update(
                         {'End Date': component.get('dtend').dt.strftime('%d/%m/%Y')})
+                    # Endstunde des Termin speichern
                     nextAppointment.update(
                         {'End Time': component.get('dtend').dt.astimezone(self.berlin).strftime('%H:%M')})
         return nextAppointment
 
     def saveAppointment(self, apmt, apmt_timedate):
+        """Einen Termin machen"""
         cal = Calendar()
         event = Event()
         myCal = self.getCalendars()
+        # Information des Termin speichern
         event.add('summary', apmt)
         event.add('dtstart', apmt_timedate)
         event.add('dtend', apmt_timedate + timedelta(hours=1))
-        # event.add('description',
-        # f'{awesomeEvent.description} - {awesomeEvent.url}')
-        # event.add('location', awesomeEvent.location)
+        # event in ical-Kalender erstellen
         cal.add_component(event)
+        # termin in Nextcloud schreiben
         myCal[0].save_event(cal)
         self.saved = True
 
     def eventExisted(self, dt):
+        """einen bestimmten Termin suchen"""
         calendars = self.getCalendars()
         if len(calendars) > 0:
             calendar = calendars[0]
-            allEvents = calendar.date_search(
+            # termin am bestimmten Tag
+            event = calendar.date_search(
                 start=dt, end=(dt + timedelta(minutes=5)))
-        return allEvents
+        return event
 
     def deleteAppointment(self, dt):
+        """einen Termin löschen"""
         calendars = self.getCalendars()
         if len(calendars) > 0:
             calendar = calendars[0]
-            allEvents = calendar.date_search(
+            # termin am bestimmten Tag
+            event = calendar.date_search(
                 start=dt, end=(dt + timedelta(minutes=5)))
-        allEvents[0].delete()
-        print(allEvents[0], 'was deleted')
+        # termin am bestimmten Tag löschen
+        event[0].delete()
+        print(event[0], 'was deleted')
 
 
 class MakeAppointments(MycroftSkill):
     def __init__(self):
+        # objekt von Klasse 'myCalendar' erstellen
         self.myCal = MyCalendar()
         MycroftSkill.__init__(self)
 
-    # @intent_handler('appointments.make.intent')
-    # def handle_appointments_make(self, message):
-    #     now = now_local.date()
-    #     nextAp = myCal.getNextAppointmentDate(now)
-    #     todo = nextAp['Summary']
-    #     dateS = nextAp['Start Date']
-    #     dateE = nextAp['End Date']
-    #     timeS = nextAp['Start Time']
-    #     timeE = nextAp['Start Time']
-    #     if dateS = now:
-    #         self.speak_dialog(
-    #             'Your next appointment is on {} at {} and is entitled {}.'.format(dateS, timeS, todo))
-    #     else:
-    #         self.speak_dialog('You have no Appointment today')
-
     @intent_handler('next.appointments.intent')
-    def handle_appointments_make(self, message):
+    def handle_next_appointment(self, message):
+        """Frage von dem Benutzer bekommen und akustisch sie beantworten"""
+        # näschter Termin gefunden durch die Funktion 'getNextAppointmentDate' von Objekt 'myCal'
         nextAp = self.myCal.getNextAppointmentDate()
+        # Name des Termins
         todo = nextAp['Summary']
+        # Datum des Termins
         dateS = nextAp['Start Date']
-        # dateE = nextAp['End Date']
+        # Uhrzeit des Termins
         timeS = nextAp['Start Time']
-        # timeE = nextAp['Start Time']
+        # akustisch beantworten
         self.speak_dialog(
             'Your next appointment is on {} at {} and is entitled {}.'.format(dateS, timeS, todo))
 
     @intent_handler('make.appointment.intent')
     def add_new_appointment(self, msg=None):
-        """ Handler for adding  an appointment with a name at a specific time. """
+        """ Handler zum Hinzufügen eines Termins mit einem Namen zu einem bestimmten Zeitpunkt. """
+        # Name des Termins
         appointment = msg.data.get('appointment', None)
+        # wenn kein Name da ist
         if appointment is None:
+            # Rückmelden, dass kein Name gibt
             return self.unnamed_appointment(msg)
+        # die Eingabe abholen
         utterance = msg.data['utterance']
+        # Eine Datums- / Uhrzeitangabe wurde extrahiert
         appointment_time, _ = (extract_datetime(utterance, now_local(),
                                                 self.lang,
                                                 default_time=DEFAULT_TIME) or
                                (None, None))
-        if appointment_time:  # A datetime was extracted
+        if appointment_time:
+            # den Kalendereintrag machen
             self.myCal.saveAppointment(appointment, appointment_time)
             if self.myCal.saved:
+                # bestätigen, dass den Eintrag gemacht wurde
                 self.speak_dialog('appointments.make')
         else:
+            # wenn kein Datum gibt, rückmelden
             self.speak_dialog('NoDate')
 
     @intent_handler('unnamed.appointment.intent')
     def unnamed_appointment(self, msg=None):
-        """ Handles the case where a time was given but no appointment
-            name was added.
-        """
+        """ Behandelt den Fall, in dem eine Uhrzeit angegeben wurde, aber kein Terminname hinzugefügt wurde."""
+        # die Eingabe abholen
         utterance = msg.data['utterance']
+        # Eine Datums- / Uhrzeitangabe wurde extrahiert
         apmt_time, _ = (extract_datetime(utterance, now_local(),
                                          self.lang,
                                          default_time=DEFAULT_TIME) or
                         (None, None))
+        # nach den Terminname fragen
         response = self.get_response('AppointmentName')
+        # wenn Terminname und Datum und Uhrzeit da sind
         if response and apmt_time:
+            # den Kalendereintrag machen
             self.myCal.saveAppointment(response, apmt_time)
             if self.myCal.saved:
-                self.speak_dialog('appointments.make')
+                # bestätigen, dass den Eintrag gemacht wurde
+                self.speak_dialog('appointments.made')
 
     @intent_handler('deleteAppointment.intent')
     def remove_appointment(self, msg=None):
-        """ Remove all reminders for the specified date. """
+        """Entfernen Sie alle Termine für das angegebene Datum."""
+        # Eine Datums- / Uhrzeitangabe wurde extrahiert
         if 'date' in msg.data:
             date, _ = extract_datetime(msg.data['date'], lang=self.lang)
         else:
@@ -179,17 +218,22 @@ class MakeAppointments(MycroftSkill):
 
         if date:
             if date.time():
+                # schauen, ob der Termin am bestimmten Tag existiert
                 if self.myCal.eventExisted(date):
+                    # wenn ja, nach der Bestätigung zum Löschen fragen
                     answer = self.ask_yesno(
                         'confirmDelete', data={'date': date.strftime("%d/%m/%Y %H:%M")})
                     if answer == 'yes':
+                        # wenn die Antwort 'Ja' ist, den Entrag löschen
                         self.myCal.deleteAppointment(date)
                         self.speak_dialog('Your appointment on {} was removed.'.format(
                             date.strftime("%d/%m/%Y %H:%M")))
                 else:
+                    # wenn kein Termin, rückmelden
                     self.speak_dialog('noAppointment', {
                                       'date': date.strftime("%d/%m/%Y %H:%M")})
         else:
+            # wenn kein Datum gibt, rückmelden
             response = self.get_response('repeatDeleteDate')
             if response:
                 self.remove_appointment(response)

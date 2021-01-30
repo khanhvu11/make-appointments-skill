@@ -14,9 +14,6 @@ class MyCalendar:
         self.url = "https://" + self.username + ":" + self.password + \
             "@next.social-robot.info/nc/remote.php/dav"
         self.apmtNotExisted = True
-        self.startOfRequest = datetime.now()
-        self.nextHalfHour = self.startOfRequest + \
-            timedelta(hours=0.5)
 
     def getCalendars(self):
         # open connection to calendar
@@ -28,20 +25,30 @@ class MyCalendar:
         return calendars
 
     def searchForAppointments(self, calendar):
-        self.timeDelta = 0
-        self.apmtNotExisted = True
-        while(self.apmtNotExisted):
-            print('Begining: ', self.startOfRequest)
-            print('nextHalfHour: ', self.nextHalfHour)
+        apmtNotExisted = True
+        startOfDay = datetime.now()
+        nextDay = startOfDay + \
+            timedelta(days=1)
+        while(apmtNotExisted):
+            print('Begining: ', startOfDay)
+            print('nextDay: ', nextDay)
             events = calendar.date_search(
-                start=self.startOfRequest, end=self.nextHalfHour)
+                start=startOfDay, end=nextDay)
             if len(events) > 0:
                 print('events existed')
-                self.apmtNotExisted = False
-                return events
-            self.timeDelta += 0.5
-            self.startOfRequest = self.nextHalfHour
-            self.nextHalfHour += timedelta(hours=self.timeDelta)
+                start = startOfDay
+                end = start + timedelta(hours=0.5)
+                while(apmtNotExisted):
+                    print('30 minuten ...')
+                    event = calendar.date_search(start=start, end=end)
+                    if len(event) > 0:
+                        print('1 event existed')
+                        apmtNotExisted = False
+                        return event
+                    start = end
+                    end += timedelta(hours=0.5)
+            startOfDay = nextDay
+            nextDay += timedelta(days=1)
 
     def getNextAppointmentDate(self):
         berlin = pytz.timezone('Europe/Berlin')
