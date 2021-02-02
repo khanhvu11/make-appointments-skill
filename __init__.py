@@ -68,7 +68,7 @@ class MyCalendar:
 
     def getNextAppointmentDate(self):
         """Information von dem Termin bekommen"""
-        # Information des Termin
+        # Information des nächsten Termin
         nextAppointment = {}
         # Kalender holen
         calendars = self.getCalendars()
@@ -103,7 +103,7 @@ class MyCalendar:
         return nextAppointment
 
     def saveAppointment(self, apmt, apmt_timedate):
-        """Einen Termin machen"""
+        """Einen Kalendereintrag machen"""
         cal = Calendar()
         event = Event()
         myCal = self.getCalendars()
